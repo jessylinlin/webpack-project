@@ -1,0 +1,8 @@
+@import url(reset.css);
+body {
+    margin: auto;
+    min-height: 100px;
+    background-color: aliceblue;
+    background-image: url('../image/ll.jpg');
+    background-size: cover;
+}
