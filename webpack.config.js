@@ -9,9 +9,9 @@ class MyPlugin {
     //compiler--构建配置信息 通过compiler注册钩子函数
     apply(compiler) {
         console.log('my plugin')
-            //tap注册钩子
-            // name 
-            //function(compilation) 
+        //tap注册钩子
+        // name 
+        //function(compilation) 
         compiler.hooks.emit.tap(
             'MyPlugin',
             //compilation 对象 此次打包的上下文 打包过程产生结果放入此对象
@@ -45,58 +45,86 @@ module.exports = {
         //打包文件path
         // publicPath: 'dist/'
     },
+    //开发服务器
+    devServer: {
+        contentBase: path.join(__dirname, 'public'),
+        proxy: {
+            //请求路径前缀
+            '/api': {
+                //http://localhost:8080/api/users => https:api.github.com/api/users
+                target: 'https://api.github.com',
+                pathRewrite: {
+                    '^/api': ''
+                },
+                //不能使用 localhost:8080 作为请求 github的主机名
+                //实际代理请求 主机名请求； api.github.com
+                changeOrigin: true
+
+            }
+        }
+    },
+    resolve: {
+        // https://github.com/babel/babel/issues/8462
+        // https://blog.csdn.net/qq_39807732/article/details/110089893
+        // 如果确认需要node polyfill，设置resolve.fallback安装对应的依赖
+
+        // 如果确认不需要node polyfill，设置resolve.alias设置为false
+        alias: {
+            crypto: false
+        }
+    },
     //loader
     module: {
         //其他资源模块加载规则
         rules: [{
-                test: /.js$/,
-                use: {
-                    loader: 'babel-loader',
-                    options: {
-                        presets: ["@babel/preset-env"]
-                    }
+            test: /.js$/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: ["@babel/preset-env"]
                 }
-            },
-            {
-                test: /.css$/,
-                use: ['style-loader', 'css-loader']
-            },
-            {
-                test: /.jpg$/,
-                // use: 'file-loader'
-                use: {
-                    loader: 'url-loader',
-                    options: {
-                        limit: 10 * 1024 //10kb ,超过10kb会被打包成image单独文件
-                    }
-                }
-            },
-            // {
-            //     test: /.html$/,
-            //     use: {
-            //         loader: 'html-loader',
-            //         options: {
-            //             // attr: ['img:src', 'a:href'] old
-            //             sources: {
-            //                 list: [{
-            //                         tag: 'img',
-            //                         attribute: 'src',
-            //                         type: 'src'
-            //                     },
-            //                     {
-            //                         tag: 'a',
-            //                         attribute: 'href',
-            //                         type: 'src'
-            //                     }
-            //                 ]
-            //             }
-            //         }
-            //     }
-            // },
-            {
-                test: /\.hbs$/,
-                loader: "handlebars-loader"
             }
+        },
+        {
+            test: /.css$/,
+            use: ['style-loader', 'css-loader']
+        },
+        {
+            test: /.jpg$/,
+            // use: 'file-loader'
+            use: {
+                loader: 'url-loader',
+                options: {
+                    limit: 10 * 1024 //10kb ,超过10kb会被打包成image单独文件
+                }
+            }
+        },
+        // {
+        //     test: /.html$/,
+        //     use: {
+        //         loader: 'html-loader',
+        //         options: {
+        //             // attr: ['img:src', 'a:href'] old
+        //             sources: {
+        //                 list: [{
+        //                         tag: 'img',
+        //                         attribute: 'src',
+        //                         type: 'src'
+        //                     },
+        //                     {
+        //                         tag: 'a',
+        //                         attribute: 'href',
+        //                         type: 'src'
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        // },
+        {
+            test: /\.hbs$/,
+            loader: "handlebars-loader"
+        }
         ]
     },
     //plugin
@@ -116,14 +144,15 @@ module.exports = {
             filename: 'about.html',
             template: './index.html'
         }),
-        //copy静态文件
+        //copy静态文件,开发阶段不使用这个插件， 打包开销大 速度慢
         //新增patterns:[]
-        new CopyWebpackPlugin({
-            patterns: [{
-                from: path.join(__dirname, 'public'),
-                to: 'public'
-            }],
-        }),
-        new MyPlugin()
+        // new CopyWebpackPlugin({
+        //     patterns: [{
+        //         from: path.join(__dirname, 'public'),
+        //         to: 'public'
+        //     }],
+        // }),
+        //自定义plugin
+        // new MyPlugin()
     ]
 }
